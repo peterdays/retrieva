@@ -1,0 +1,34 @@
+# pyproject.toml
+
+[build-system]
+requires = [
+    "setuptools",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "retrieva"
+version = "1.0.0.0"
+description = "This is the repo pertaining all the logic of Retrieva, your smart documentation retrieval assistant!"
+authors = [
+    {name = "Pedro Dias", email = "pedrofilipe.md@gmail.com"},
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "pandas==2.2.2",
+    "numpy==1.26.4"
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupytext==1.16.1",
+    "jupyterlab-lsp==5.1.0",
+    "jupyter-lsp==2.2.4",
+    "jupyterlab==4.1.5",
+    "jupyterlab-execute-time==3.1.2"
+]
+
+[tool.setuptools.packages.find]
+exclude = ["dlpackages"]

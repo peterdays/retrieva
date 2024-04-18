@@ -1,0 +1,10 @@
+# run: conda env create --file environment.yml
+name: retrieva
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip==24.0
+  - pip:
+      - -e .[dev]
