@@ -1,22 +1,29 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-import asyncio
 
+from retrieva import ROOT_PATH
+from retrieva.data import DATA_PATH
+from retrieva.handler import RagHandler
+
+# used in dev; in production pass the env variable to the containers
+load_dotenv(os.path.join(ROOT_PATH, ".env"))
 
 app = FastAPI()
 
 
-async def fake_data_streamer(query: str):
-    for i in range(10):
-        yield f"{query}_{i}"
-        await asyncio.sleep(0.5)
+rag_handler = RagHandler(DATA_PATH)
+
+async def data_streamer(query: str):
+    response_stream = rag_handler.user_prompt_streaming(query)
+    for text in response_stream.response_gen:
+        # return the texts as they arrive.
+        yield text
 
 
 @app.get('/')
 async def main(query: str):
-    return StreamingResponse(fake_data_streamer(query), media_type='text/event-stream')
-    # or, use:
-    '''
-    headers = {'X-Content-Type-Options': 'nosniff'}
-    return StreamingResponse(fake_data_streamer(), headers=headers, media_type='text/plain')
-    '''
+
+    return StreamingResponse(data_streamer(query), media_type='text/event-stream')

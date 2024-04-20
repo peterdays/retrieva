@@ -22,7 +22,10 @@ dependencies = [
     "matplotlib==3.6.3",
     "llama-index==0.10.30",
     "fastapi==0.110.2",
-    "uvicorn==0.29.0"
+    "uvicorn==0.29.0",
+    "python-dotenv==0.21.0",
+    "dash==2.16.1",
+    "dash-bootstrap-components==1.6.0"
 ]
 
 [project.optional-dependencies]
