@@ -21,7 +21,8 @@ dependencies = [
     "numpy==1.26.4",
     "matplotlib==3.6.3",
     "llama-index==0.10.30",
-    "fastapi==0.110.2"
+    "fastapi==0.110.2",
+    "uvicorn==0.29.0"
 ]
 
 [project.optional-dependencies]
