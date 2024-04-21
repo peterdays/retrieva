@@ -1,34 +1,42 @@
 import logging
 import sys
-
+import weaviate
 from llama_index.core import (PromptTemplate, Settings, SimpleDirectoryReader,
-                              VectorStoreIndex)
+                              StorageContext, VectorStoreIndex)
+from llama_index.core.base.base_query_engine import BaseQueryEngine
 from llama_index.core.node_parser import SentenceSplitter
-
-from retrieva import ROOT_PATH
+from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from typing import Optional
 from retrieva.data import DATA_PATH
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
-from llama_index.core.base.base_query_engine import BaseQueryEngine
 
 
 class RagHandler():
-    def __init__(self, data_path: str  = DATA_PATH) -> None:
+    def __init__(self, index_name: str, data_path: str  = DATA_PATH,
+                 weaviate_url: Optional[str] = None
+                 ) -> None:
         # generating the index
         documents = SimpleDirectoryReader(data_path).load_data()
 
-        vector_index = VectorStoreIndex.from_documents(documents)
-        vector_index.as_query_engine()
         text_splitter = SentenceSplitter(chunk_size=512, chunk_overlap=15)
-
         # global
-
         Settings.text_splitter = text_splitter
 
-        # per-index
+        storage_context = None
+        if weaviate_url:
+            client = weaviate.Client(weaviate_url)
+            # If you want to load the index later, be sure to give it a name!
+            vector_store = WeaviateVectorStore(
+                weaviate_client=client, index_name=index_name
+            )
+            storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+        # index
         self.index = VectorStoreIndex.from_documents(
-            documents, transformations=[text_splitter]
+            documents, transformations=[text_splitter],
+            storage_context=storage_context
         )
 
     def user_prompt_streaming(self, prompt: str, similarity: int = 2,
@@ -51,15 +59,18 @@ class RagHandler():
         # updating the tree summarize prompt according to business requirements
 
         new_summary_tmpl_str = (
-            "You are a summarization service to help users navigate documentation of companies.\n"
-            "Always include the filepaths from the nodes' in the context to support"
-            " the answer as well as further reading that may be mentioned in "
-            f"the docs. Remove '{DATA_PATH}' from the metadatas' filepaths\n"
+            "You are a summarization service to help users navigate "
+            "proprietary documentation of their companies.\n"
+            "Always include the filepaths from the nodes in the context "
+            "information to support the answer as well as further reading "
+            "that may be mentioned in the docs. "
+            f"Remove '{DATA_PATH}' from the metadatas' filepaths\n"
             "Context information is below.\n"
             "---------------------\n"
             "{context_str}\n"
             "---------------------\n"
-            "If the query and the context don't make sense answer with 'There is no good match in the docs for this prompt'\n"
+            "If the query and the context don't make sense answer with "
+            "'There is no good match in the docs for this prompt'\n"
             "Given the context information and not prior knowledge, "
             "answer the query.\n"
             "Query: {query_str}\n"

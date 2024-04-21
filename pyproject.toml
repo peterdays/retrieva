@@ -25,7 +25,9 @@ dependencies = [
     "uvicorn==0.29.0",
     "python-dotenv==0.21.0",
     "dash==2.16.1",
-    "dash-bootstrap-components==1.6.0"
+    "dash-bootstrap-components==1.6.0",
+    "weaviate-client==3.26.2",
+    "llama-index-vector-stores-weaviate==0.1.4"
 ]
 
 [project.optional-dependencies]

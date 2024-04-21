@@ -14,7 +14,11 @@ load_dotenv(os.path.join(ROOT_PATH, ".env"))
 app = FastAPI()
 
 
-rag_handler = RagHandler(DATA_PATH)
+rag_handler = RagHandler(
+    index_name="SageMakerDocs",
+    weaviate_url=os.environ["WEAVIATE_URL"],
+    data_path=DATA_PATH
+)
 
 async def data_streamer(query: str):
     response_stream = rag_handler.user_prompt_streaming(query)

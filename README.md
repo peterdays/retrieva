@@ -13,8 +13,10 @@ Retrieva: Smart Documentation Retrieval !
 # Features:
 
 - [x] RAG Pipeline to query documentation using LLamaIndex
-   - [ ] non standard post processing
+   - [ ] prompt engineering (role, output format, negative prompt)
+   - [ ] preventing hallucinations ()
 - [ ] Prompting through FastAPI with streaming
    - [ ] Middleware for auth
 - [ ] Embeddings saved in local weaviate service
+   - [ ] Load it! https://docs.llamaindex.ai/en/stable/examples/vector_stores/WeaviateIndexDemo/
 - [ ] Containerized deployment
