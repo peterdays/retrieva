@@ -1,12 +1,15 @@
 import logging
 import sys
+from typing import Optional
+
 import weaviate
 from llama_index.core import (PromptTemplate, Settings, SimpleDirectoryReader,
                               StorageContext, VectorStoreIndex)
 from llama_index.core.base.base_query_engine import BaseQueryEngine
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
-from typing import Optional
+
+from retrieva import LOGGER
 from retrieva.data import DATA_PATH
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -20,24 +23,40 @@ class RagHandler():
         # generating the index
         documents = SimpleDirectoryReader(data_path).load_data()
 
-        text_splitter = SentenceSplitter(chunk_size=512, chunk_overlap=15)
-        # global
-        Settings.text_splitter = text_splitter
-
         storage_context = None
+        index_exists = False
         if weaviate_url:
+            LOGGER.info("Using weaviate db at %s", weaviate_url)
             client = weaviate.Client(weaviate_url)
+            # use to load the collection
+            index_exists = client.schema.exists(index_name)
+
             # If you want to load the index later, be sure to give it a name!
             vector_store = WeaviateVectorStore(
                 weaviate_client=client, index_name=index_name
             )
             storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
+        # creating the index vs loading it
+        if index_exists:
+            LOGGER.info("Loading %s...", index_name)
+            vector_store = WeaviateVectorStore(
+                weaviate_client=client, index_name=index_name
+            )
+            index = VectorStoreIndex.from_vector_store(vector_store)
+
+        else:
+            text_splitter = SentenceSplitter(chunk_size=512, chunk_overlap=15)
+            # global
+            Settings.text_splitter = text_splitter
+
+            index = VectorStoreIndex.from_documents(
+                documents, transformations=[text_splitter],
+                storage_context=storage_context
+            )
+
         # index
-        self.index = VectorStoreIndex.from_documents(
-            documents, transformations=[text_splitter],
-            storage_context=storage_context
-        )
+        self.index = index
 
     def user_prompt_streaming(self, prompt: str, similarity: int = 2,
                               response_mode: str = "tree_summarize"):
