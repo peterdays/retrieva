@@ -2,6 +2,10 @@ FROM python:3.10
 
 WORKDIR /code
 
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    pip install pip --upgrade
+
 COPY ./pyproject.toml /code/pyproject.toml
 
 RUN pip install --no-cache-dir --upgrade .

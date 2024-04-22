@@ -28,8 +28,8 @@ dependencies = [
     "dash-bootstrap-components==1.6.0",
     "weaviate-client==3.26.2",
     "llama-index-vector-stores-weaviate==0.1.4",
-    "diskcache-5.6.3",
-    "multiprocess-0.70.16"
+    "diskcache==5.6.3",
+    "multiprocess==0.70.16"
 ]
 
 [project.optional-dependencies]
