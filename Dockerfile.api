@@ -1,0 +1,11 @@
+FROM python:3.10
+
+WORKDIR /code
+
+COPY ./pyproject.toml /code/pyproject.toml
+
+RUN pip install --no-cache-dir --upgrade .
+
+COPY ./api /code/api
+
+COPY ./retrieva /code/retrieva

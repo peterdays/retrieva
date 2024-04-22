@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.9"
 
 services:
   weaviate:
@@ -23,3 +23,41 @@ services:
       DEFAULT_VECTORIZER_MODULE: 'none'
       ENABLE_MODULES: 'text2vec-cohere,text2vec-huggingface,text2vec-palm,text2vec-openai,generative-openai,generative-cohere,generative-palm,ref2vec-centroid,reranker-cohere,qna-openai'
       CLUSTER_HOSTNAME: 'node1'
+    network_mode: "host"
+
+  retrieva_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: retrieva_api
+    hostname: retrieva_api
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WEAVIATE_URL=${WEAVIATE_URL}
+      - DATA_FOLDER_PATH=${DATA_FOLDER_PATH}
+    ports:
+      - "3333:3333"
+    restart: always
+    command: uvicorn api.app:app --host 0.0.0.0 --port 3333
+    depends_on:
+      - weaviate
+    volumes:
+      - type: bind # type
+        source: ${DATA_FOLDER_PATH}
+        target: /code/${DATA_FOLDER_PATH}
+    network_mode: "host"
+
+  retrieva_dash:
+    container_name: retrieva_dash
+    hostname: retrieva_dash
+    build:
+      context: .
+      dockerfile: Dockerfile.dash
+    environment:
+      - RAG_API_URL=${RAG_API_URL}
+    ports:
+      - "4444:4444"
+    restart: always
+    depends_on:
+      - retrieva_api
+    network_mode: "host"

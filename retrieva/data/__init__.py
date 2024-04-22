@@ -8,5 +8,6 @@ __all__ = [
     "get_file_paths"
 ]
 
-
-DATA_PATH = os.path.join(ROOT_PATH, "artifacts/sagemaker_documentation_small")
+def add_root(path):
+    # util function
+    return os.path.join(ROOT_PATH, path)

@@ -10,16 +10,17 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 
 from retrieva import LOGGER
-from retrieva.data import DATA_PATH
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 
 class RagHandler():
-    def __init__(self, index_name: str, data_path: str  = DATA_PATH,
+    def __init__(self, index_name: str, data_path: str,
                  weaviate_url: Optional[str] = None
                  ) -> None:
+
+        self.data_path = data_path
         # generating the index
         documents = SimpleDirectoryReader(data_path).load_data()
 
@@ -46,6 +47,7 @@ class RagHandler():
             index = VectorStoreIndex.from_vector_store(vector_store)
 
         else:
+            LOGGER.info("Creating new index from %s", self.data_path)
             text_splitter = SentenceSplitter(chunk_size=512, chunk_overlap=15)
             # global
             Settings.text_splitter = text_splitter
@@ -82,14 +84,14 @@ class RagHandler():
             "proprietary documentation of their companies.\n"
             "Always include the filepaths from the nodes in the context "
             "information to support the answer as well as further reading "
-            "that may be mentioned in the docs. "
-            f"Remove '{DATA_PATH}' from the metadatas' filepaths\n"
+            "that may be mentioned in the docs themselves. "
+            f"Remove '{self.data_path}' from the metadatas' filepaths.\n"
             "Context information is below.\n"
             "---------------------\n"
             "{context_str}\n"
             "---------------------\n"
             "If the query and the context don't make sense answer with "
-            "'There is no good match in the docs for this prompt'\n"
+            "'Warning: There is no good match in the docs for this prompt!'.\n"
             "Given the context information and not prior knowledge, "
             "answer the query.\n"
             "Query: {query_str}\n"

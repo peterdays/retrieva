@@ -2,7 +2,7 @@
 Retrieva: Smart Documentation Retrieval !
 
 
-![Alt text](image.png)
+![Alt text](retrieva_demo.gif)
 
 
 # Setup

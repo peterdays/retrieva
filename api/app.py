@@ -5,19 +5,23 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 
 from retrieva import ROOT_PATH
-from retrieva.data import DATA_PATH
+from retrieva.data import add_root
 from retrieva.handler import RagHandler
 
 # used in dev; in production pass the env variable to the containers
 load_dotenv(os.path.join(ROOT_PATH, ".env"))
 
-app = FastAPI()
+app = FastAPI(
+    title="Retrieva API",
+    description=("Retrieval Augmented Generation API with to ease the "
+                 "documentation searching in companies")
+)
 
 
 rag_handler = RagHandler(
     index_name="SageMakerDocs",
     weaviate_url=os.environ["WEAVIATE_URL"],
-    data_path=DATA_PATH
+    data_path=add_root(os.environ["DATA_FOLDER_PATH"])
 )
 
 async def data_streamer(query: str):
@@ -28,6 +32,11 @@ async def data_streamer(query: str):
 
 
 @app.get('/')
-async def main(query: str):
+async def root_func():
+    return {"retrieva-api-version": "1.0.0.0"}
 
-    return StreamingResponse(data_streamer(query), media_type='text/event-stream')
+@app.get('/query')
+async def query_rag(query: str):
+
+    return StreamingResponse(data_streamer(query),
+                             media_type='text/event-stream')
