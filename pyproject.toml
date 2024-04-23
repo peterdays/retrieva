@@ -29,7 +29,8 @@ dependencies = [
     "weaviate-client==3.26.2",
     "llama-index-vector-stores-weaviate==0.1.4",
     "diskcache==5.6.3",
-    "multiprocess==0.70.16"
+    "multiprocess==0.70.16",
+    "dash[diskcache]"
 ]
 
 [project.optional-dependencies]

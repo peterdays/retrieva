@@ -22,7 +22,7 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.LITERA],
 app.title = 'Retrieva'
 
 app.layout = dbc.Row([
-    dbc.Col(html.H2("Retrieva Demo 🚀"), width={"size": 2, "offset": 5}),
+    dbc.Col(dcc.Markdown("### *Retrieva* Demo 🚀"), width={"size": 2, "offset": 5}),
     dbc.Col(
         dcc.Textarea(
             id='markdown_input',

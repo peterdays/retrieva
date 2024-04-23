@@ -1,15 +1,20 @@
 import logging
 import sys
-from typing import Optional
 
 import weaviate
 from llama_index.core import (PromptTemplate, Settings, SimpleDirectoryReader,
-                              StorageContext, VectorStoreIndex)
+                              VectorStoreIndex)
 from llama_index.core.base.base_query_engine import BaseQueryEngine
+from llama_index.core.extractors import TitleExtractor
+from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.storage.docstore import SimpleDocumentStore
+from llama_index.embeddings.openai import (OpenAIEmbedding,
+                                           OpenAIEmbeddingModelType)
+from llama_index.llms.openai import OpenAI
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 
-from retrieva import LOGGER
+from retrieva import LOGGER, ROOT_PATH
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -17,26 +22,22 @@ logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 class RagHandler():
     def __init__(self, index_name: str, data_path: str,
-                 weaviate_url: Optional[str] = None
-                 ) -> None:
+                 weaviate_url: str,
+                 underlying_llm: str = "gpt-3.5-turbo") -> None:
 
         self.data_path = data_path
+
+        # define underlying LLM
+        Settings.llm = OpenAI(temperature=0.1, model=underlying_llm)
+
         # generating the index
         documents = SimpleDirectoryReader(data_path).load_data()
 
-        storage_context = None
-        index_exists = False
-        if weaviate_url:
-            LOGGER.info("Using weaviate db at %s", weaviate_url)
-            client = weaviate.Client(weaviate_url)
-            # use to load the collection
-            index_exists = client.schema.exists(index_name)
+        LOGGER.info("Using weaviate db at %s", weaviate_url)
+        client = weaviate.Client(weaviate_url)
 
-            # If you want to load the index later, be sure to give it a name!
-            vector_store = WeaviateVectorStore(
-                weaviate_client=client, index_name=index_name
-            )
-            storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        # use to load the collection
+        index_exists = client.schema.exists(index_name)
 
         # creating the index vs loading it
         if index_exists:
@@ -47,15 +48,30 @@ class RagHandler():
             index = VectorStoreIndex.from_vector_store(vector_store)
 
         else:
-            LOGGER.info("Creating new index from %s", self.data_path)
-            text_splitter = SentenceSplitter(chunk_size=512, chunk_overlap=15)
-            # global
-            Settings.text_splitter = text_splitter
-
-            index = VectorStoreIndex.from_documents(
-                documents, transformations=[text_splitter],
-                storage_context=storage_context
+            # If you want to load the index later, be sure to give it a name!
+            vector_store = WeaviateVectorStore(
+                weaviate_client=client, index_name=index_name
             )
+            LOGGER.info("Creating new index from %s", self.data_path)
+
+            # use in a pipeline
+            llm = OpenAI(model="gpt-3.5-turbo")
+            transformations=[
+                SentenceSplitter(chunk_size=512, chunk_overlap=15),
+                TitleExtractor(nodes=5, llm=llm),
+                OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_ADA_002),
+            ]
+            pipeline = IngestionPipeline(
+                transformations=transformations,
+                vector_store=vector_store,  # directly injecting in the db
+                docstore=SimpleDocumentStore()  # looking for duplicate documents
+            )
+
+            # Ingest directly into a vector db
+            pipeline.run(documents=documents, show_progress=True,
+                         num_workers=2)
+
+            index = VectorStoreIndex.from_vector_store(vector_store)
 
         # index
         self.index = index
@@ -82,10 +98,10 @@ class RagHandler():
         new_summary_tmpl_str = (
             "You are a summarization service to help users navigate "
             "proprietary documentation of their companies.\n"
-            "Always include the filepaths from the nodes in the context "
+            "ALWAYS include the filepaths from the nodes in the context "
             "information to support the answer as well as further reading "
             "that may be mentioned in the docs themselves. "
-            f"Remove '{self.data_path}' from the metadatas' filepaths.\n"
+            f"Remove '{ROOT_PATH}' from the metadatas' filepaths.\n"
             "Context information is below.\n"
             "---------------------\n"
             "{context_str}\n"
@@ -93,7 +109,7 @@ class RagHandler():
             "If the query and the context don't make sense answer with "
             "'Warning: There is no good match in the docs for this prompt!'.\n"
             "Given the context information and not prior knowledge, "
-            "answer the query.\n"
+            "answer the query. Don't forget to cite the original docs.\n"
             "Query: {query_str}\n"
             "Answer: "
         )
