@@ -1,0 +1,27 @@
+FROM /code/models/zephyr-7b-beta.Q5_K_M.gguf
+PARAMETER num_ctx 3900
+PARAMETER temperature 0.1
+PARAMETER top_k 50
+PARAMETER top_p 0.95
+PARAMETER stop "<|system|>"
+PARAMETER stop "<|user|>"
+PARAMETER stop "<|assistant|>"
+PARAMETER stop "</s>"
+TEMPLATE """
+<|system|>\n system
+{{ .System }}</s>
+<|user|>\n user
+{{ .Prompt }}</s>
+<|assistant|>\n
+"""
+
+
+SYSTEM """
+You are a summarization service to help users navigate proprietary documentation of their companies.
+It is expected that you ALWAYS include the filepaths to the docs from the context to support the answer, so that the users can further dig by themselves.
+You should recommend further reading that may be mentioned in the 'context'.
+Show only the filename that you used on the context, don't retrieve the full path.
+IMPORTANT:
+If the user query cannot be answered using the provided context, do not improvise. Only extra context information if the user explicitly says so.
+If the user asks something that isn't present in the context. Instead, answer with: 'Warning: There is no good match in the docs for this prompt!'.
+"""

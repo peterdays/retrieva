@@ -30,7 +30,10 @@ dependencies = [
     "llama-index-vector-stores-weaviate==0.1.4",
     "diskcache==5.6.3",
     "multiprocess==0.70.16",
-    "dash[diskcache]"
+    "dash[diskcache]",
+    "huggingface-hub==0.20.3",
+    "llama_index_embeddings_langchain==0.1.2",
+    "langchain==0.1.16"
 ]
 
 [project.optional-dependencies]

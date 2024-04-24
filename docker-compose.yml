@@ -61,3 +61,17 @@ services:
     depends_on:
       - retrieva_api
     network_mode: "host"
+
+  ollama_service:
+    container_name: ollama_service
+    hostname: ollama_service
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama
+    ports:
+      - "11434:11434"
+    restart: always
+    volumes:
+    - ./artifacts/ollama_data:/ollama/models
+    command: ollama create zephyr-local -f Modelfile; sleep infinity
+    network_mode: "host"

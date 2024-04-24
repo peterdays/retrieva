@@ -1,0 +1,21 @@
+FROM python:3.10-slim
+
+WORKDIR /code
+
+RUN apt-get -y update && \
+    apt-get -y install curl && \
+    pip install -U "huggingface_hub[cli]"
+
+COPY ./retrieva/ollama/install_ollama.sh /code/install_ollama.sh
+
+COPY ./retrieva/ollama/model_download.sh /code/model_download.sh
+
+RUN chmod +x install_ollama.sh
+
+RUN chmod +x model_download.sh
+
+RUN . ./install_ollama.sh
+
+RUN . ./model_download.sh
+
+COPY ./retrieva/ollama/Modelfile /code/Modelfile
