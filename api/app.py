@@ -21,7 +21,8 @@ app = FastAPI(
 rag_handler = RagHandler(
     index_name="SageMakerDocs",
     weaviate_url=os.environ["WEAVIATE_URL"],
-    data_path=add_root(os.environ["DATA_FOLDER_PATH"])
+    data_path=add_root(os.environ["DATA_FOLDER_PATH"]),
+    cloud_based=os.environ["USE_CLOUD_PIPELINE"]
 )
 
 async def data_streamer(query: str):
