@@ -33,7 +33,8 @@ dependencies = [
     "dash[diskcache]",
     "huggingface-hub==0.20.3",
     "llama_index_embeddings_langchain==0.1.2",
-    "langchain==0.1.16"
+    "langchain==0.1.16",
+    "spacy==3.7.4"
 ]
 
 [project.optional-dependencies]

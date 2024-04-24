@@ -86,11 +86,12 @@ class RagHandler():
         # index
         self.index = index
 
-    def user_prompt_streaming(self, prompt: str, similarity: int = 2):
+    def get_response(self, prompt: str, similarity_top_k: int = 2,
+                     streaming: bool = True):
 
         query_engine = self.index.as_query_engine(
-            streaming=True,
-            similarity_top_k=similarity,
+            streaming=streaming,
+            similarity_top_k=similarity_top_k,
             response_mode="tree_summarize" if self.cloud_based else "compact",
             verbose=True
         )
@@ -100,9 +101,10 @@ class RagHandler():
             self._update_openai_summary_prompt(query_engine)
 
         self.engine = query_engine
-        response_stream = query_engine.query(prompt)
+        response = query_engine.query(prompt)
 
-        return response_stream
+        return response # or response_stream
+
 
     def _use_openai_pipeline(self):
         # define underlying LLM

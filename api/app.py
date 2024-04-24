@@ -25,7 +25,7 @@ rag_handler = RagHandler(
 )
 
 async def data_streamer(query: str):
-    response_stream = rag_handler.user_prompt_streaming(query)
+    response_stream = rag_handler.get_response(query)
     for text in response_stream.response_gen:
         # return the texts as they arrive.
         yield text
