@@ -46,7 +46,8 @@ class RagHandler():
         # generating the index
         documents = SimpleDirectoryReader(data_path).load_data()
 
-        LOGGER.info("Using weaviate db at %s", weaviate_url)
+        LOGGER.info("Using weaviate db at %s with cloud flag at %s",
+                    weaviate_url, cloud_based)
         client = weaviate.Client(weaviate_url)
         # load the collection or not
         index_exists = client.schema.exists(index_name)
