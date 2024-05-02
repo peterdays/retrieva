@@ -35,7 +35,8 @@ dependencies = [
     "llama_index_embeddings_langchain==0.1.2",
     "langchain==0.1.16",
     "spacy==3.7.4",
-    "llama-index-llms-ollama==0.1.2"
+    "llama-index-llms-ollama==0.1.2",
+    "sentence-transformers"
 ]
 
 [project.optional-dependencies]
@@ -48,4 +49,4 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-exclude = ["dlpackages"]
+exclude = []

@@ -72,8 +72,7 @@ services:
       dockerfile: Dockerfile.ollama
     ports:
       - "11434:11434"
-    restart: always
     volumes:
     - ./artifacts/ollama_data:/ollama/models
-    command: ollama create zephyr-local -f Modelfile; sleep infinity
+    command: ollama create zephyr-local -f Modelfile
     network_mode: "host"
